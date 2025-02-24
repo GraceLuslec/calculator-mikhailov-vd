@@ -1,134 +1,90 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <string.h>
 
-typedef struct {
-    int *data;
-    int top;
-    int capacity;
-} Stack;
 
-Stack* create_stack(int initial_size) {
-    Stack *s = (Stack*)malloc(sizeof(Stack));
-    s->capacity = initial_size;
-    s->top = -1;
-    s->data = (int*)malloc(s->capacity * sizeof(int));
-    return s;
+int parse_expression();
+int parse_term();
+int parse_factor();
+
+
+char *input;
+int position = 0;
+
+
+void next_char() {
+    position++;
 }
 
-void push(Stack *s, int value) {
-    if (s->top == s->capacity - 1) {
-        s->capacity *= 2;
-        s->data = realloc(s->data, s->capacity * sizeof(int));
+
+int parse_expression() {
+    int result = parse_term();
+    while (input[position] == '+' || input[position] == '-') {
+        char op = input[position];
+        next_char();
+        int term = parse_term();
+        if (op == '+') result += term;
+        else result -= term;
     }
-    s->data[++s->top] = value;
+    return result;
 }
 
-int pop(Stack *s) {
-    if (s->top == -1) {
-        fprintf(stderr, "Ошибка: стек пуст\n");
-        exit(EXIT_FAILURE);
+
+int parse_term() {
+    int result = parse_factor();
+    while (input[position] == '*' || input[position] == '/') {
+        char op = input[position];
+        next_char();
+        int factor = parse_factor();
+        if (op == '*') result *= factor;
+        else result /= factor;
     }
-    return s->data[s->top--];
+    return result;
 }
 
-int peek(const Stack *s) {
-    return s->data[s->top];
-}
 
-int precedence(char op) {
-    switch(op) {
-        case '+':
-        case '-': return 1;
-        case '*':
-        case '/': return 2;
-        default: return 0;
-    }
-}
-
-int evaluate(const char *expr) {
-    Stack *values = create_stack(10);
-    Stack *ops = create_stack(10);
-
-    for (int i = 0; expr[i]; i++) {
-        if (expr[i] == ' ') continue;
-
-        if (isdigit(expr[i])) {
-            int num = 0;
-            while (isdigit(expr[i])) {
-                num = num * 10 + (expr[i] - '0');
-                i++;
-            }
-            i--;
-            push(values, num);
-        } else if (expr[i] == '(') {
-            push(ops, '(');
-        } else if (expr[i] == ')') {
-            while (peek(ops) != '(') {
-                int b = pop(values);
-                int a = pop(values);
-                char op = pop(ops);
-                switch(op) {
-                    case '+': push(values, a + b); break;
-                    case '-': push(values, a - b); break;
-                    case '*': push(values, a * b); break;
-                    case '/': push(values, a / b); break;
-                }
-            }
-            pop(ops);
-        } else {
-            while (ops->top != -1 && precedence(peek(ops)) >= precedence(expr[i])) {
-                int b = pop(values);
-                int a = pop(values);
-                char op = pop(ops);
-                switch(op) {
-                    case '+': push(values, a + b); break;
-                    case '-': push(values, a - b); break;
-                    case '*': push(values, a * b); break;
-                    case '/': push(values, a / b); break;
-                }
-            }
-            push(ops, expr[i]);
+int parse_factor() {
+    int result;
+    if (input[position] == '(') {
+        next_char();
+        result = parse_expression();
+        if (input[position] != ')') {
+            fprintf(stderr, "Ошибка: ожидалась закрывающая скобка\n");
+            exit(1);
         }
-    }
-
-    while (ops->top != -1) {
-        int b = pop(values);
-        int a = pop(values);
-        char op = pop(ops);
-        switch(op) {
-            case '+': push(values, a + b); break;
-            case '-': push(values, a - b); break;
-            case '*': push(values, a * b); break;
-            case '/': push(values, a / b); break;
+        next_char();
+    } else if (isdigit(input[position])) {
+        result = 0;
+        while (isdigit(input[position])) {
+            result = result * 10 + (input[position] - '0');
+            next_char();
         }
+    } else {
+        fprintf(stderr, "Ошибка: неверный символ '%c'\n", input[position]);
+        exit(1);
     }
-
-    int result = pop(values);
-    free(values->data);
-    free(ops->data);
-    free(values);
-    free(ops);
     return result;
 }
 
 int main() {
-    char input[1024];
-    if (fgets(input, sizeof(input), stdin) { 
+    char buffer[1024];
+    if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
         fprintf(stderr, "Ошибка чтения ввода\n");
         return 1;
     }
 
-    char cleaned[1024];
-    int j = 0;
-    for (int i = 0; input[i]; i++) {
-        if (!isspace(input[i]) {
-            cleaned[j++] = input[i];
+
+    input = buffer;
+    position = 0;
+    while (input[position] != '\0') {
+        if (isspace(input[position])) {
+            next_char();
+        } else {
+            break;
         }
     }
-    cleaned[j] = '\0';
 
-    printf("%d\n", evaluate(cleaned));
+    int result = parse_expression();
+    printf("%d\n", result);
     return 0;
 }
