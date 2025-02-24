@@ -3,7 +3,6 @@
 #include <ctype.h>
 #include <string.h>
 
-
 typedef struct {
     int *data;
     int top;
@@ -38,7 +37,6 @@ int peek(const Stack *s) {
     return s->data[s->top];
 }
 
-
 int precedence(char op) {
     switch(op) {
         case '+':
@@ -48,7 +46,6 @@ int precedence(char op) {
         default: return 0;
     }
 }
-
 
 int evaluate(const char *expr) {
     Stack *values = create_stack(10);
@@ -79,7 +76,7 @@ int evaluate(const char *expr) {
                     case '/': push(values, a / b); break;
                 }
             }
-            pop(ops); 
+            pop(ops);
         } else {
             while (ops->top != -1 && precedence(peek(ops)) >= precedence(expr[i])) {
                 int b = pop(values);
@@ -118,16 +115,15 @@ int evaluate(const char *expr) {
 
 int main() {
     char input[1024];
-    if (fgets(input, sizeof(input), stdin) == NULL) {
+    if (fgets(input, sizeof(input), stdin) { 
         fprintf(stderr, "Ошибка чтения ввода\n");
         return 1;
     }
 
-    
     char cleaned[1024];
     int j = 0;
     for (int i = 0; input[i]; i++) {
-        if (!isspace(input[i]) && input[i] != '\n') {
+        if (!isspace(input[i]) {
             cleaned[j++] = input[i];
         }
     }
