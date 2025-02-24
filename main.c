@@ -68,16 +68,16 @@ int parse_factor() {
 
 int main() {
     char buffer[1024];
-    if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
+    if (fgets(buffer, sizeof(buffer), stdin) == NULL) { 
         fprintf(stderr, "Ошибка чтения ввода\n");
         return 1;
     }
 
-
+  
     input = buffer;
     position = 0;
     while (input[position] != '\0') {
-        if (isspace(input[position])) {
+        if (isspace(input[position])) { 
             next_char();
         } else {
             break;
